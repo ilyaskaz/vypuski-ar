@@ -1,0 +1,32 @@
+name: Сборка APK
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5.1'
+      - name: Сборка
+        run: gradle assembleDebug --no-daemon --stacktrace
+      - name: Переименовать
+        run: cp app/build/outputs/apk/debug/app-debug.apk VypuskiAR.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VypuskiAR
+          path: VypuskiAR.apk
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Выпуски AR — сборка ${{ github.run_number }}
+          files: VypuskiAR.apk
